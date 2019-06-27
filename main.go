@@ -35,6 +35,13 @@ func lubDub(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("lubdub"))
 }
 
+func APIHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		sh := http.StripPrefix("/api/ingress/v1/openapi/", http.FileServer(http.Dir("/tmp/src/openapi/")))
+		sh.ServeHTTP(w, r)
+	}
+}
+
 func main() {
 	cfg := config.Get()
 	l.InitLogger()
@@ -110,6 +117,7 @@ func main() {
 			r.Get("/", lubDub)
 			r.With(middleware.Logger).Post("/upload", upload.NewHandler(p))
 		}
+		r.With(middleware.Logger).Handle("/openapi", APIHandler())
 		r.With(middleware.Logger).Get("/version", version.GetVersion)
 	})
 	r.Get("/", lubDub)
